@@ -1,11 +1,14 @@
 package io.github.guimatech.cleanarchitecture.api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.guimatech.cleanarchitecture.application.service.PayableService;
 import io.github.guimatech.cleanarchitecture.domain.model.Balance;
 import io.github.guimatech.cleanarchitecture.domain.model.Payable;
-import io.github.guimatech.cleanarchitecture.application.service.PayableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,22 +23,24 @@ public class PayableController {
     private PayableService service;
 
     @GetMapping
-    public List<Payable> findAll(
+    public ResponseEntity<List<Payable>> findAll(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
+        List<Payable> payables;
         if (page == null || size == null)
-            return service.findAll();
+            payables = service.findAll();
         else
-            return service.findAll(PageRequest.of(page, size));
+            payables = service.findAll(PageRequest.of(page, size));
+        return new ResponseEntity<>(payables, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public Payable findById(@PathVariable Long id) {
-        return service.findById(id);
+    public ResponseEntity<Payable> findById(@PathVariable Long id) {
+        return new ResponseEntity<>(service.findById(id), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/balance", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Balance findBalance() {
-        return service.findBalance();
+    @GetMapping(value = "/balance")
+    public ResponseEntity<String> findBalance() throws JsonProcessingException {
+        return new ResponseEntity<>(service.findBalance().toJson(), HttpStatus.OK);
     }
 }
